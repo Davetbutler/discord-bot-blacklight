@@ -35,4 +35,4 @@ A Discord bot for registering and tracking wallet addresses.
 
 - Wallet registrations are persisted in `registrations.json`.
 - `/register` and `/unregister` only work in the channel set by `DISCORD_CHANNEL_ID`; in other channels the bot replies that the command must be used in the designated bot channel.
-- The placeholder cron sends "test message" to that same channel every 5 minutes. Replace with real wallet-check logic later.
+- Every 30 seconds the bot checks each registered node via the Blacklight API. If the latest heartbeat has a `block_timestamp` more than 1 minute old, it posts: *"Node \<address\> has not responded to heartbeat transaction for 1 minute(s)."* to the designated channel.
