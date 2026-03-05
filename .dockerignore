@@ -1,0 +1,11 @@
+.env
+.git
+.gitignore
+__pycache__
+*.pyc
+venv
+registrations.json
+*.md
+.env.example
+list_indexer_tables.py
+indexer_verifications.py

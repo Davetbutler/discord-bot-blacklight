@@ -1,0 +1,8 @@
+services:
+  bot:
+    build: .
+    image: blacklight-bot
+    env_file: .env
+    volumes:
+      - ./registrations.json:/app/registrations.json
+    restart: unless-stopped

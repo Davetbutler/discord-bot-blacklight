@@ -12,8 +12,12 @@ from fetch_node import BASE_URL, fetch_node, fetch_node_block_number, parse_rsc_
 
 load_dotenv()
 
-HEARTBEAT_STALE_MINUTES = 1
-HEARTBEAT_CHECK_INTERVAL_SECONDS = 30
+# How often to run the heartbeat check (seconds)
+_check_s = (os.getenv("HEARTBEAT_CHECK_INTERVAL_SECONDS") or "300").strip()
+HEARTBEAT_CHECK_INTERVAL_SECONDS = int(_check_s) if _check_s.isdigit() else 300
+# How long without a heartbeat before sending a DM (seconds)
+_stale_s = (os.getenv("HEARTBEAT_STALE_THRESHOLD_SECONDS") or "1800").strip()
+HEARTBEAT_STALE_THRESHOLD_SECONDS = int(_stale_s) if _stale_s.isdigit() else 1800
 
 REGISTRATIONS_FILE = Path("registrations.json")
 _channel_id = (os.getenv("DISCORD_CHANNEL_ID") or "0").strip()
@@ -136,11 +140,11 @@ class BlacklightBot(discord.Client):
     async def heartbeat_check_cron(self):
         """Every 30s: for each registered node, check latest heartbeat; DM users if > 1 min old."""
         await self.wait_until_ready()
-        stale_threshold_seconds = HEARTBEAT_STALE_MINUTES * 60
         def dm_message(node: str) -> str:
+            mins = HEARTBEAT_STALE_THRESHOLD_SECONDS // 60
             return (
                 f"Hey. The node you registered ({node}) has not responded to heartbeat transaction "
-                f"for {HEARTBEAT_STALE_MINUTES} minute{'s' if HEARTBEAT_STALE_MINUTES != 1 else ''} - you may want to check up on it."
+                f"for {mins} minute{'s' if mins != 1 else ''} - you may want to check up on it."
             )
         while not self.is_closed():
             nodes = load_all_registered_nodes()
@@ -165,7 +169,7 @@ class BlacklightBot(discord.Client):
                 now = datetime.now(timezone.utc)
                 age_seconds = (now - dt).total_seconds()
                 print(f"[Heartbeat]   Last transaction: {ts_str} (age {age_seconds:.0f}s)")
-                if age_seconds > stale_threshold_seconds:
+                if age_seconds > HEARTBEAT_STALE_THRESHOLD_SECONDS:
                     user_ids = get_user_ids_for_node(node_address)
                     for uid in user_ids:
                         try:
@@ -176,7 +180,7 @@ class BlacklightBot(discord.Client):
                         except discord.HTTPException as e:
                             print(f"[Heartbeat]   Failed to DM user {uid}: {e}")
                 else:
-                    print(f"[Heartbeat]   No message (heartbeat under {HEARTBEAT_STALE_MINUTES} min)")
+                    print(f"[Heartbeat]   No message (heartbeat under {HEARTBEAT_STALE_THRESHOLD_SECONDS}s)")
             await asyncio.sleep(HEARTBEAT_CHECK_INTERVAL_SECONDS)
 
 
