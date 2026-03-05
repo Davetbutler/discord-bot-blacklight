@@ -19,7 +19,16 @@ HEARTBEAT_CHECK_INTERVAL_SECONDS = int(_check_s) if _check_s.isdigit() else 300
 _stale_s = (os.getenv("HEARTBEAT_STALE_THRESHOLD_SECONDS") or "1800").strip()
 HEARTBEAT_STALE_THRESHOLD_SECONDS = int(_stale_s) if _stale_s.isdigit() else 1800
 
-REGISTRATIONS_FILE = Path("registrations.json")
+REGISTRATIONS_FILE = Path("data") / "registrations.json"
+
+
+def ensure_registrations_file() -> None:
+    """Create data dir and empty registrations file if missing (so volume mount persists on host)."""
+    REGISTRATIONS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    if not REGISTRATIONS_FILE.exists():
+        REGISTRATIONS_FILE.write_text("{}")
+
+
 _channel_id = (os.getenv("DISCORD_CHANNEL_ID") or "0").strip()
 ALLOWED_CHANNEL_ID = int(_channel_id) if _channel_id.isdigit() else 0
 _guild_id = (os.getenv("DISCORD_GUILD_ID") or "").strip()
@@ -33,6 +42,7 @@ def load_registrations() -> dict[str, list[str]]:
 
 
 def save_registrations(data: dict[str, list[str]]) -> None:
+    REGISTRATIONS_FILE.parent.mkdir(parents=True, exist_ok=True)
     REGISTRATIONS_FILE.write_text(json.dumps(data, indent=2))
 
 
@@ -241,4 +251,6 @@ async def on_ready():
     print("------")
 
 
-bot.run(os.getenv("DISCORD_BOT_TOKEN"))
+if __name__ == "__main__":
+    ensure_registrations_file()
+    bot.run(os.getenv("DISCORD_BOT_TOKEN"))

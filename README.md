@@ -28,7 +28,7 @@ A Discord bot for registering and tracking wallet addresses.
 
 ## Docker
 
-Build and run with Docker (pass env from your `.env` file; use a volume if you want to persist `registrations.json`):
+Build and run with Docker (pass env from your `.env` file; use a volume if you want to persist registrations):
 
 ```bash
 docker build -t blacklight-bot .
@@ -38,16 +38,14 @@ docker run --env-file .env --rm blacklight-bot
 To persist registrations across restarts:
 
 ```bash
-docker run --env-file .env -v $(pwd)/registrations.json:/app/registrations.json --rm blacklight-bot
+docker run --env-file .env -v $(pwd)/data:/app/data --rm blacklight-bot
 ```
 
-Or use Docker Compose (builds, loads `.env`, and mounts `registrations.json`):
+Or use Docker Compose (builds, loads `.env`, and mounts a `data` directory so `registrations.json` is stored as a file inside it):
 
 ```bash
 docker compose up -d
 ```
-
-Ensure `registrations.json` exists first (e.g. `echo '{}' > registrations.json`) so the volume mount is a file, not a directory.
 
 ## Commands
 
@@ -58,6 +56,6 @@ Ensure `registrations.json` exists first (e.g. `echo '{}' > registrations.json`)
 
 ## Notes
 
-- Wallet registrations are persisted in `registrations.json`.
+- Wallet registrations are persisted in `data/registrations.json`.
 - `/register` and `/unregister` only work in the channel set by `DISCORD_CHANNEL_ID`; in other channels the bot replies that the command must be used in the designated bot channel.
 - The bot runs a heartbeat check every `HEARTBEAT_CHECK_INTERVAL_SECONDS` (default 300). For each registered node it calls the Blacklight API; if the latest heartbeat is older than `HEARTBEAT_STALE_THRESHOLD_SECONDS` (default 1800), it DMs that message to every user who registered that node.

@@ -4,5 +4,5 @@ services:
     image: blacklight-bot
     env_file: .env
     volumes:
-      - ./registrations.json:/app/registrations.json
+      - ./data:/app/data
     restart: unless-stopped

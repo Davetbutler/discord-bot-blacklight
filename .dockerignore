@@ -4,6 +4,7 @@
 __pycache__
 *.pyc
 venv
+data
 registrations.json
 *.md
 .env.example

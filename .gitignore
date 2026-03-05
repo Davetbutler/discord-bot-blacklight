@@ -1,4 +1,5 @@
 .env
+data/
 registrations.json
 __pycache__/
 *.pyc
