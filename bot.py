@@ -156,6 +156,14 @@ class BlacklightBot(discord.Client):
                 f"Hey. The node you registered ({node}) has not responded to heartbeat transaction "
                 f"for {mins} minute{'s' if mins != 1 else ''} - you may want to check up on it."
             )
+
+        def channel_message(node: str) -> str:
+            mins = HEARTBEAT_STALE_THRESHOLD_SECONDS // 60
+            return (
+                f"Node {node} has not responded to a HTX for {mins} minute{'s' if mins != 1 else ''}, "
+                "it may have gone offline."
+            )
+
         while not self.is_closed():
             nodes = load_all_registered_nodes()
             if not nodes:
@@ -180,6 +188,16 @@ class BlacklightBot(discord.Client):
                 age_seconds = (now - dt).total_seconds()
                 print(f"[Heartbeat]   Last transaction: {ts_str} (age {age_seconds:.0f}s)")
                 if age_seconds > HEARTBEAT_STALE_THRESHOLD_SECONDS:
+                    # Notify the channel
+                    if self.allowed_channel_id:
+                        try:
+                            channel = self.get_channel(self.allowed_channel_id)
+                            if channel:
+                                await channel.send(channel_message(node_address))
+                                print(f"[Heartbeat]   Channel notification sent for {node_address}")
+                        except discord.HTTPException as e:
+                            print(f"[Heartbeat]   Failed to send channel message: {e}")
+                    # DM each user who registered this node
                     user_ids = get_user_ids_for_node(node_address)
                     for uid in user_ids:
                         try:

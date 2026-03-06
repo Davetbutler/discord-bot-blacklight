@@ -4,3 +4,4 @@ registrations.json
 __pycache__/
 *.pyc
 venv
+*.pem
